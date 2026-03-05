@@ -20,6 +20,12 @@ def validate_blog_post(data) -> tuple[bool, str]:
     return True, "Done!"
 
 
+def fetch_post_by_id(id) -> tuple[bool, dict]:
+    for post in POSTS:
+        if post['id'] == id:
+            return True, post
+    return False, {'error': f"No post with ID: '{id}'"}
+
 @app.route('/api/posts', methods=['GET', 'POST'])
 def get_posts():
     if request.method == 'GET':
@@ -37,6 +43,15 @@ def get_posts():
     POSTS.append(new_post)
     return jsonify(new_post), 201
 
+
+@app.route('/api/posts/<int:id>', methods=['DELETE'])
+def delete_post(id):
+    is_executed, del_post = fetch_post_by_id(id)
+    if not is_executed:
+        return jsonify(del_post), 404
+    POSTS.remove(del_post)
+
+    return jsonify({'message': f"Post with ID: '{id}' has been deleted successfully"}), 200
 
 
 if __name__ == '__main__':
