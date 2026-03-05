@@ -8,7 +8,8 @@ POSTS = [
     {"id": 1, "title": "First post", "content": "This is the first post."},
     {"id": 2, "title": "Second post", "content": "This is the second post."},
 ]
-
+SORT_OPTIONS = ['title', 'content']
+DIRECTION_OPTION = ['asc', 'desc']
 
 def validate_blog_post(data) -> tuple[bool, str]:
     if not len(data) == 2:
@@ -45,7 +46,23 @@ def search_post_by_title_or_content(title: str, content: str) -> list[dict]:
 @app.route('/api/posts', methods=['GET', 'POST'])
 def get_posts():
     if request.method == 'GET':
-        return jsonify(POSTS)
+        sort_key = request.args.get('sort')
+        direction = request.args.get('direction', 'asc').lower()
+
+        if not sort_key:
+            return jsonify(POSTS)
+
+        if sort_key not in SORT_OPTIONS:
+            return jsonify(f"Invalid 'sort' parameter. Options: {SORT_OPTIONS}"), 400
+        if direction not in DIRECTION_OPTION:
+            return jsonify(f"Invalid 'direction' parameter. Options: {DIRECTION_OPTION}"), 400
+
+        is_reverse = (direction == 'desc')
+        sorted_posts = sorted(
+            POSTS,
+            key=lambda x: str(x.get(sort_key, '')).lower(),
+            reverse=is_reverse)
+        return jsonify(sorted_posts)
 
     # method = POST
     new_post = request.get_json()
