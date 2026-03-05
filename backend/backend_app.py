@@ -30,6 +30,18 @@ def fetch_post_by_id(id) -> tuple[bool, dict]:
 def get_new_id() -> int:
     return max(post['id'] for post in POSTS) + 1
 
+
+def search_post_by_title_or_content(title: str, content: str) -> list[dict]:
+    result = [{}]
+    for post in POSTS:
+        if title.lower() in post['title'].lower() and title:
+            result.append(post)
+            continue
+        if content.lower() in post['content'].lower() and content:
+            result.append(post)
+    return result
+
+
 @app.route('/api/posts', methods=['GET', 'POST'])
 def get_posts():
     if request.method == 'GET':
@@ -67,6 +79,13 @@ def delete_post(id):
             post_to_edit.update(new_post)
             return jsonify(post_to_edit), 200
 
+
+@app.route('/api/posts/search', methods=['GET'])
+def search_post():
+    title = request.args.get('title', '')
+    content = request.args.get('content', '')
+    result = search_post_by_title_or_content(title, content)
+    return jsonify(result), 200
 
 
 if __name__ == '__main__':
